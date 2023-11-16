@@ -119,10 +119,7 @@ def move_right(board):
 
 # This function is for setting the board and giving instructions 
 def game_start():
-    global board
-    global instructions
-    
-    #setting the table
+    #setting the board
     board = np.array([[0 for _ in range(4)] for _ in range(4)])
     
     #making a random square 2 for beginning
@@ -158,6 +155,7 @@ def game_2048(board):
     elif move=='quit':
         board[0,0]=1
         return board
+    
     else:
         print('enter a valid move')
         board_print(board)
@@ -165,7 +163,8 @@ def game_2048(board):
         return board
 
 # This is the main function that runs other functions in order to play the game
-def game(board):
+def game():
+    board = game_start()
     while True:
         clear_output(wait=True) # This line is for deleting the previous board and may not work on all interpreters
         board = game_2048(board)
@@ -180,15 +179,7 @@ def game(board):
                 print('Thanks for playing')
                 break
                 
-#         elif (board==1).any():
-#             print("Thanks for playing")
-#             again = input("Would you like to play again? (y/n): ")
-#             if again.lower() == 'y':
-#                 board = game_start()
-#             else:
-#                 break
-                
         elif board is not False:
             board_print(board)
         
-game(board)
+game()

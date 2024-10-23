@@ -3,21 +3,11 @@ import random
 from math import log2
 from tabulate import tabulate 
 from IPython.display import clear_output 
-
-# This function is useless alone but later we'll use it with the move_up function to complete one move. What this function does
-# is taking all 0's at the end of their corresponding column
-def shift_zeros(board):
-    for _ in range(3):
-        for row in range(3):
-            for col in range(4):
-                if board[row][col] == 0:
-                    board[row][col],board[row+1][col] = board[row+1][col],board[row][col]
-    return board
+import re 
 
 set_num=np.array([2**i for i in range(1,20)])
 
-# This function will be used after each move to generate a new random number at a randomly choosen place amongst all squares
-# that is 0
+# Generate a new random number at a randomly choosen place amongst all squares that is 0
 def random_generate(board):
     # Getting the max element at board to see what values we can generate (ideally not much bigger or smaller than max element)
     max_element = np.max(board)
@@ -49,37 +39,38 @@ def random_generate(board):
         return board
     else:      
         return False
+    
+#Formats a number to 'k' for thousands and 'm' for millions.
+def format_number(n):
+    if n >= 1_000_000:
+        return f"{n // 1_000_000}m"
+    elif n >= 1_000:
+        return f"{n // 1_000}k"
+    else:
+        return str(n)
 
-# This function is just for printing the board like a table after each move    
+# Print the board after each move    
 def board_print(board):
 
-    fake_board=board.copy()
-    fake_board[fake_board == 0] = 78
+    # Create a copy of the board as strings, format big number
+    temp_board = np.vectorize(format_number)(board)  # format big numbers
 
-    table = tabulate(fake_board, tablefmt="fancy_grid", numalign='center')
-    print(table.replace("78","  "))
-    return
-        
-    """ 
-    here it's not a great idea to make it 78 but I couldn't find a way to convert those digits to string and then print back.
-    On the code below I showed that on the range(66), no number includes 78 in it. The first 78 we see is:
-    2**66=73786976294838206464 which is not really possible to reach. Also 78 is the best number for this task from 0-99.
-    I could also pick a big random number but then the printing would look ugly since I replace all digits with ' '
-    
-    import re
-    powers=np.array([2**i for i in range(66)])
-    pow=np.array2string(powers)
+    # Use tabulate to display the board
+    table = tabulate(temp_board, tablefmt="fancy_grid", numalign='center')
+    table = re.sub(r'\b0\b', ' ', table)  # \b0\b matches a whole word '0'
+    print(table)
 
-    num= str(78)
 
-    if num in pow:
-        print(f'there\'s at least one {num} here')
-    else:
-        print(f"There's not any {num}") 
-        """
+# Shift all 0's to the end of their corresponding column
+def shift_zeros(board):
+    for _ in range(3):
+        for row in range(3):
+            for col in range(4):
+                if board[row][col] == 0:
+                    board[row][col],board[row+1][col] = board[row+1][col],board[row][col]
+    return board
 
-# This function is going to define how the numbers will add up when the user puts input for moving up. All other 3 directions
-# will be defined with help of this function
+# Define how the numbers will add up when "w" is given as input
 def move_up(board):
     board=shift_zeros(board)
     for row in np.arange(3):
@@ -96,13 +87,12 @@ def move_up(board):
                     board[row+1][col]=0
     return board
 
-# Defining other 3 moves with the help of move_up function
+# Define other 3 moves with the help of move_up function
 def move_down(board):
     board=np.flip(board, 0)
     board=move_up(board)
     board=np.flip(board, 0)
     return board
-
 
 def move_left(board):
     board=np.transpose(board)
@@ -110,22 +100,21 @@ def move_left(board):
     board=np.transpose(board)
     return board
 
-
 def move_right(board):
     board=np.transpose(board)
     board=move_down(board)
     board=np.transpose(board)
     return board
 
-# This function is for setting the board and giving instructions 
+
+# Set the board and give instructions 
 def game_start():
     #setting the board
     board = np.array([[0 for _ in range(4)] for _ in range(4)])
     
-    #making a random square 2 for beginning
-    ran=random.randint(0,15)
+    ran=random.randint(0,15) # select a random square
     row , col = divmod(ran,4)
-    board[row,col]=2
+    board[row,col]=2 # set the initial value on selected square
     
     instructions="""Commands are as follows : 
       'W' or 'w' : Move Up
@@ -133,10 +122,10 @@ def game_start():
       'A' or 'a' : Move Left
       'D' or 'd' : Move Right
       'quit'     : quit"""
+      
     print(instructions)
     board_print(board)
     return board
-game_start()
 
 # This function takes the user move and matches it with the corresponding move
 def game_2048(board):
